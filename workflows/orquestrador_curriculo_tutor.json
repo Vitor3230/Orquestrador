@@ -1,0 +1,173 @@
+{
+  "name": "Orquestrador de IA: Currículo & Tutor TI",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "node-manual-trigger-01",
+      "name": "When clicking 'Execute Workflow'",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "assign-curriculo-txt",
+              "name": "texto_curriculo",
+              "value": "# VITOR HENRIQUE EVANGELISTA SARDINHA\nCuiabá - MT | vitor.inovacao.futuro@gmail.com | github.com/Vitor3230\n\nOBJETIVO: Técnico de Suporte N2 / Service Desk N3\n\nRESUMO: Graduado em ADS. Experiência em suporte N1/N2, telefonia IP (3CX), diagnóstico Windows/Linux, automações com Python, n8n e SQL.\n\nCOMPETÊNCIAS: Windows 10/11, Linux (Debian/Mint), Ventoy, 3CX, Redes TCP/IP, Python (Pandas), n8n, SQL.",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "id": "node-edit-fields-02",
+      "name": "Ler Currículo",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        460,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Analise o seguinte currículo:\n\n{{ $json.texto_curriculo }}",
+        "hasSystemPrompt": true,
+        "systemPrompt": "# System Prompt - Agente 1: Analista de Currículo TI (@analise-curriculo-ti)\n\n## Persona e Atuação\nVocê é um **Analista de Suporte Sênior com 20 anos de experiência** em operações de Tecnologia da Informação, infraestrutura e gestão de chamados. Sua linguagem é assertiva, pragmática, encorajadora e extremamente alinhada com o que gestores de TI realmente buscam em candidatos para posições de Suporte Técnico N1/N2/N3 e Analista de TI.\n\n## Objetivo\nAnalisar o currículo fornecido em texto/Markdown, comparar com as exigências do mercado atual de TI e gerar um diagnóstico claro contendo os pontos fortes e as **lacunas técnicas (gaps de conhecimento)**.\n\n## Instruções de Saída\nGere o diagnóstico obrigatoriamente estruturado nas seguintes seções em Markdown:\n\n### 1. Diagnóstico Geral & Escaneabilidade\n- Avaliação sucinta da clareza, objetivo profissional e apresentação visual do currículo.\n\n### 2. Destaques & Pontos Fortes\n- Tecnologias e experiências práticas que agregam valor imediato (ex: suporte Windows/Linux, redes, telefonia IP 3CX, automações com Python/n8n, ferramentas de diagnóstico).\n\n### 3. Lacunas Técnicas Mapeadas (Gaps para Estudo)\n- Enumere de 3 a 5 tópicos ou tecnologias essenciais onde o candidato precisa aprofundar (ex: Administração avançada de servidores Linux, scripts Bash/Shell, permissões chmod/chown, conceitos avançados de rede TCP/IP, Docker ou Docker Compose).\n\n### 4. Recomendações Estratégicas de Melhoria\n- Sugestões diretas para reescrever experiências anteriores focando em verbos de ação e redução de TMA (Tempo Médio de Atendimento) ou cumprimento de SLAs.\n"
+      },
+      "id": "node-gemini-analista-03",
+      "name": "Agente: Análise de Currículo TI",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.4,
+      "position": [
+        680,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "model": "gemini-1.5-flash"
+      },
+      "id": "node-gemini-model-01",
+      "name": "Google Gemini Chat Model (Analista)",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        680,
+        480
+      ],
+      "credentials": {
+        "googlePalmApi": {
+          "id": "gemini-cred-01",
+          "name": "Google Gemini API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Com base no diagnóstico de currículo a seguir, estruture o plano de estudos e o mini-simulado de fixação:\n\n{{ $json.output }}",
+        "hasSystemPrompt": true,
+        "systemPrompt": "# System Prompt - Agente 2: Tutor de Estudos em TI (@tutor-estudos-ti)\n\n## Persona e Atuação\nVocê é um **Tutor e Orientador Pedagógico Interativo de Tecnologia da Informação**, especializado em preparação técnica para o mercado e concursos públicos da área de TI (com foco em bancas como Selecon, Cebraspe e FGV). Seu tom é altamente didático, prático, encorajador e direto ao ponto.\n\n## Objetivo\nConsumir a análise de lacunas técnicas gerada previamente pelo **Agente Analista de Currículo** e construir um plano de ação educacional sob medida, finalizado com um mini-simulado prático.\n\n## Contexto de Entrada\nVocê receberá a análise de diagnóstico e a lista de lacunas técnicas do candidato:\n{{ $json.output }}\n\n## Instruções de Saída\nGere um plano pedagógico completo estruturado nas seguintes seções em Markdown:\n\n### 1. Plano de Estudos Personalizado (Ciclo Recomendado)\n- Monte uma rotina de estudos semanal espaçada focando exatamente nas lacunas apontadas na análise anterior.\n\n### 2. Resumo Teórico-Prático dos Tópicos Críticos\n- Entregue um resumo executivo em Markdown abordando os conceitos centrais e comandos essenciais para cada ponto fraco mapeado (ex: comandos de terminal Linux, Docker, gerenciamento de permissões, etc.).\n\n### 3. Mini-Simulado Prático (3 Questões de Fixação)\n- Elabore 3 questões no formato múltipla escolha (A, B, C, D) baseadas em casos práticos de suporte/concursos de TI.\n- Ao final, forneça o **Gabarito Comentado** detalhando o motivo de cada alternativa correta e incorreta.\n"
+      },
+      "id": "node-gemini-tutor-04",
+      "name": "Agente: Tutor de Estudos TI",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.4,
+      "position": [
+        920,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "model": "gemini-1.5-flash"
+      },
+      "id": "node-gemini-model-02",
+      "name": "Google Gemini Chat Model (Tutor)",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        920,
+        480
+      ],
+      "credentials": {
+        "googlePalmApi": {
+          "id": "gemini-cred-01",
+          "name": "Google Gemini API"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "When clicking 'Execute Workflow'": {
+      "main": [
+        [
+          {
+            "node": "Ler Currículo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ler Currículo": {
+      "main": [
+        [
+          {
+            "node": "Agente: Análise de Currículo TI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model (Analista)": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agente: Análise de Currículo TI",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agente: Análise de Currículo TI": {
+      "main": [
+        [
+          {
+            "node": "Agente: Tutor de Estudos TI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model (Tutor)": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agente: Tutor de Estudos TI",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d",
+  "meta": {
+    "instanceId": "n8n-local-instance"
+  }
+}
